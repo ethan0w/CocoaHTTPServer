@@ -47,13 +47,7 @@
 **/
 
 //#import "DDLog.h"
-#import <CocoaLumberjack/CocoaLumberjack.h>
 
-#define HTTP_LOG_OBJC_MAYBE(async, lvl, flg, ctx, frmt, ...) \
-do{ if(HTTP_LOG_ASYNC_ENABLED) LOG_MAYBE(async, lvl, flg, ctx, nil, sel_getName(_cmd), frmt, ##__VA_ARGS__); } while(0)
-
-#define HTTP_LOG_C_MAYBE(async, lvl, flg, ctx, frmt, ...) \
-do{ if(HTTP_LOG_ASYNC_ENABLED) LOG_MAYBE(async, lvl, flg, ctx, nil, __FUNCTION__, frmt, ##__VA_ARGS__); } while(0)
 
 // Define logging context for every log message coming from the HTTP server.
 // The logging context can be extracted from the DDLogMessage from within the logging framework,
@@ -102,6 +96,16 @@ do{ if(HTTP_LOG_ASYNC_ENABLED) LOG_MAYBE(async, lvl, flg, ctx, nil, __FUNCTION__
 #define HTTP_LOG_ASYNC_VERBOSE (YES && HTTP_LOG_ASYNC_ENABLED)
 #define HTTP_LOG_ASYNC_TRACE   (YES && HTTP_LOG_ASYNC_ENABLED)
 
+#ifdef LUMBERJACK_LOG_ENABLED
+#import <CocoaLumberjack/CocoaLumberjack.h>
+
+#define HTTP_LOG_OBJC_MAYBE(async, lvl, flg, ctx, frmt, ...) \
+do{ if(HTTP_LOG_ASYNC_ENABLED) LOG_MAYBE(async, lvl, flg, ctx, nil, sel_getName(_cmd), frmt, ##__VA_ARGS__); } while(0)
+
+#define HTTP_LOG_C_MAYBE(async, lvl, flg, ctx, frmt, ...) \
+do{ if(HTTP_LOG_ASYNC_ENABLED) LOG_MAYBE(async, lvl, flg, ctx, nil, __FUNCTION__, frmt, ##__VA_ARGS__); } while(0)
+
+
 // Define logging primitives.
 
 #define HTTPLogError(frmt, ...)    HTTP_LOG_OBJC_MAYBE(HTTP_LOG_ASYNC_ERROR,   httpLogLevel, HTTP_LOG_FLAG_ERROR,  \
@@ -141,3 +145,19 @@ do{ if(HTTP_LOG_ASYNC_ENABLED) LOG_MAYBE(async, lvl, flg, ctx, nil, __FUNCTION__
 #define HTTPLogCTrace2(frmt, ...)     HTTP_LOG_C_MAYBE(HTTP_LOG_ASYNC_TRACE,   httpLogLevel, HTTP_LOG_FLAG_TRACE, \
                                                   HTTP_LOG_CONTEXT, frmt, ##__VA_ARGS__)
 
+#else
+
+#define HTTPLogError(frmt, ...)   do {} while(0)
+#define HTTPLogWarn(frmt, ...)   do {} while(0)
+#define HTTPLogInfo(frmt, ...)   do {} while(0)
+#define HTTPLogVerbose(frmt, ...)   do {} while(0)
+#define HTTPLogTrace(frmt, ...)   do {} while(0)
+#define HTTPLogTrace2(frmt, ...)   do {} while(0)
+#define HTTPLogCError(frmt, ...)   do {} while(0)
+#define HTTPLogCWarn(frmt, ...)   do {} while(0)
+#define HTTPLogCInfo(frmt, ...)   do {} while(0)
+#define HTTPLogCVerbose(frmt, ...)   do {} while(0)
+#define HTTPLogCTrace(frmt, ...)   do {} while(0)
+#define HTTPLogCTrace2(frmt, ...)   do {} while(0)
+
+#endif
