@@ -7,8 +7,8 @@
 #import "DDNumber.h"
 #import "DDRange.h"
 #import "DDData.h"
-#import "HTTPFileResponse.h"
-#import "HTTPAsyncFileResponse.h"
+//#import "HTTPFileResponse.h"
+//#import "HTTPAsyncFileResponse.h"
 #import "WebSocket.h"
 #import "HTTPLogging.h"
 
@@ -1539,121 +1539,121 @@ static NSMutableArray *recentNonces;
  * Returns an array of possible index pages.
  * For example: {"index.html", "index.htm"}
 **/
-- (NSArray *)directoryIndexFileNames
-{
-	HTTPLogTrace();
-	
-	// Override me to support other index pages.
-	
-	return [NSArray arrayWithObjects:@"index.html", @"index.htm", nil];
-}
+//- (NSArray *)directoryIndexFileNames
+//{
+//    HTTPLogTrace();
+//
+//    // Override me to support other index pages.
+//
+//    return [NSArray arrayWithObjects:@"index.html", @"index.htm", nil];
+//}
 
-- (NSString *)filePathForURI:(NSString *)path
-{
-	return [self filePathForURI:path allowDirectory:NO];
-}
+//- (NSString *)filePathForURI:(NSString *)path
+//{
+//    return [self filePathForURI:path allowDirectory:NO];
+//}
 
 /**
  * Converts relative URI path into full file-system path.
 **/
-- (NSString *)filePathForURI:(NSString *)path allowDirectory:(BOOL)allowDirectory
-{
-	HTTPLogTrace();
-	
-	// Override me to perform custom path mapping.
-	// For example you may want to use a default file other than index.html, or perhaps support multiple types.
-	
-	NSString *documentRoot = [config documentRoot];
-	
-	// Part 0: Validate document root setting.
-	// 
-	// If there is no configured documentRoot,
-	// then it makes no sense to try to return anything.
-	
-	if (documentRoot == nil)
-	{
-		HTTPLogWarn(@"%@[%p]: No configured document root", THIS_FILE, self);
-		return nil;
-	}
-	
-	// Part 1: Strip parameters from the url
-	// 
-	// E.g.: /page.html?q=22&var=abc -> /page.html
-	
-	NSURL *docRoot = [NSURL fileURLWithPath:documentRoot isDirectory:YES];
-	if (docRoot == nil)
-	{
-		HTTPLogWarn(@"%@[%p]: Document root is invalid file path", THIS_FILE, self);
-		return nil;
-	}
-	
-	NSString *relativePath = [[NSURL URLWithString:path relativeToURL:docRoot] relativePath];
-	
-	// Part 2: Append relative path to document root (base path)
-	// 
-	// E.g.: relativePath="/images/icon.png"
-	//       documentRoot="/Users/robbie/Sites"
-	//           fullPath="/Users/robbie/Sites/images/icon.png"
-	// 
-	// We also standardize the path.
-	// 
-	// E.g.: "Users/robbie/Sites/images/../index.html" -> "/Users/robbie/Sites/index.html"
-	
-	NSString *fullPath = [[documentRoot stringByAppendingPathComponent:relativePath] stringByStandardizingPath];
-	
-	if ([relativePath isEqualToString:@"/"])
-	{
-		fullPath = [fullPath stringByAppendingString:@"/"];
-	}
-	
-	// Part 3: Prevent serving files outside the document root.
-	// 
-	// Sneaky requests may include ".." in the path.
-	// 
-	// E.g.: relativePath="../Documents/TopSecret.doc"
-	//       documentRoot="/Users/robbie/Sites"
-	//           fullPath="/Users/robbie/Documents/TopSecret.doc"
-	// 
-	// E.g.: relativePath="../Sites_Secret/TopSecret.doc"
-	//       documentRoot="/Users/robbie/Sites"
-	//           fullPath="/Users/robbie/Sites_Secret/TopSecret"
-	
-	if (![documentRoot hasSuffix:@"/"])
-	{
-		documentRoot = [documentRoot stringByAppendingString:@"/"];
-	}
-	
-	if (![fullPath hasPrefix:documentRoot])
-	{
-		HTTPLogWarn(@"%@[%p]: Request for file outside document root", THIS_FILE, self);
-		return nil;
-	}
-	
-	// Part 4: Search for index page if path is pointing to a directory
-	if (!allowDirectory)
-	{
-		BOOL isDir = NO;
-		if ([[NSFileManager defaultManager] fileExistsAtPath:fullPath isDirectory:&isDir] && isDir)
-		{
-			NSArray *indexFileNames = [self directoryIndexFileNames];
-
-			for (NSString *indexFileName in indexFileNames)
-			{
-				NSString *indexFilePath = [fullPath stringByAppendingPathComponent:indexFileName];
-
-				if ([[NSFileManager defaultManager] fileExistsAtPath:indexFilePath isDirectory:&isDir] && !isDir)
-				{
-					return indexFilePath;
-				}
-			}
-
-			// No matching index files found in directory
-			return nil;
-		}
-	}
-
-	return fullPath;
-}
+//- (NSString *)filePathForURI:(NSString *)path allowDirectory:(BOOL)allowDirectory
+//{
+//    HTTPLogTrace();
+//    
+//    // Override me to perform custom path mapping.
+//    // For example you may want to use a default file other than index.html, or perhaps support multiple types.
+//    
+//    NSString *documentRoot = [config documentRoot];
+//    
+//    // Part 0: Validate document root setting.
+//    // 
+//    // If there is no configured documentRoot,
+//    // then it makes no sense to try to return anything.
+//    
+//    if (documentRoot == nil)
+//    {
+//        HTTPLogWarn(@"%@[%p]: No configured document root", THIS_FILE, self);
+//        return nil;
+//    }
+//    
+//    // Part 1: Strip parameters from the url
+//    // 
+//    // E.g.: /page.html?q=22&var=abc -> /page.html
+//    
+//    NSURL *docRoot = [NSURL fileURLWithPath:documentRoot isDirectory:YES];
+//    if (docRoot == nil)
+//    {
+//        HTTPLogWarn(@"%@[%p]: Document root is invalid file path", THIS_FILE, self);
+//        return nil;
+//    }
+//    
+//    NSString *relativePath = [[NSURL URLWithString:path relativeToURL:docRoot] relativePath];
+//    
+//    // Part 2: Append relative path to document root (base path)
+//    // 
+//    // E.g.: relativePath="/images/icon.png"
+//    //       documentRoot="/Users/robbie/Sites"
+//    //           fullPath="/Users/robbie/Sites/images/icon.png"
+//    // 
+//    // We also standardize the path.
+//    // 
+//    // E.g.: "Users/robbie/Sites/images/../index.html" -> "/Users/robbie/Sites/index.html"
+//    
+//    NSString *fullPath = [[documentRoot stringByAppendingPathComponent:relativePath] stringByStandardizingPath];
+//    
+//    if ([relativePath isEqualToString:@"/"])
+//    {
+//        fullPath = [fullPath stringByAppendingString:@"/"];
+//    }
+//    
+//    // Part 3: Prevent serving files outside the document root.
+//    // 
+//    // Sneaky requests may include ".." in the path.
+//    // 
+//    // E.g.: relativePath="../Documents/TopSecret.doc"
+//    //       documentRoot="/Users/robbie/Sites"
+//    //           fullPath="/Users/robbie/Documents/TopSecret.doc"
+//    // 
+//    // E.g.: relativePath="../Sites_Secret/TopSecret.doc"
+//    //       documentRoot="/Users/robbie/Sites"
+//    //           fullPath="/Users/robbie/Sites_Secret/TopSecret"
+//    
+//    if (![documentRoot hasSuffix:@"/"])
+//    {
+//        documentRoot = [documentRoot stringByAppendingString:@"/"];
+//    }
+//    
+//    if (![fullPath hasPrefix:documentRoot])
+//    {
+//        HTTPLogWarn(@"%@[%p]: Request for file outside document root", THIS_FILE, self);
+//        return nil;
+//    }
+//    
+//    // Part 4: Search for index page if path is pointing to a directory
+//    if (!allowDirectory)
+//    {
+//        BOOL isDir = NO;
+//        if ([[NSFileManager defaultManager] fileExistsAtPath:fullPath isDirectory:&isDir] && isDir)
+//        {
+//            NSArray *indexFileNames = [self directoryIndexFileNames];
+//
+//            for (NSString *indexFileName in indexFileNames)
+//            {
+//                NSString *indexFilePath = [fullPath stringByAppendingPathComponent:indexFileName];
+//
+//                if ([[NSFileManager defaultManager] fileExistsAtPath:indexFilePath isDirectory:&isDir] && !isDir)
+//                {
+//                    return indexFilePath;
+//                }
+//            }
+//
+//            // No matching index files found in directory
+//            return nil;
+//        }
+//    }
+//
+//    return fullPath;
+//}
 
 /**
  * This method is called to get a response for a request.
@@ -1668,19 +1668,19 @@ static NSMutableArray *recentNonces;
 	
 	// Override me to provide custom responses.
 	
-	NSString *filePath = [self filePathForURI:path allowDirectory:NO];
-	
-	BOOL isDir = NO;
-	
-	if (filePath && [[NSFileManager defaultManager] fileExistsAtPath:filePath isDirectory:&isDir] && !isDir)
-	{
-		return [[HTTPFileResponse alloc] initWithFilePath:filePath forConnection:self];
-	
-		// Use me instead for asynchronous file IO.
-		// Generally better for larger files.
-		
-	//	return [[[HTTPAsyncFileResponse alloc] initWithFilePath:filePath forConnection:self] autorelease];
-	}
+//    NSString *filePath = [self filePathForURI:path allowDirectory:NO];
+//
+//    BOOL isDir = NO;
+//
+//    if (filePath && [[NSFileManager defaultManager] fileExistsAtPath:filePath isDirectory:&isDir] && !isDir)
+//    {
+//        return [[HTTPFileResponse alloc] initWithFilePath:filePath forConnection:self];
+//
+//        // Use me instead for asynchronous file IO.
+//        // Generally better for larger files.
+//
+//    //    return [[[HTTPAsyncFileResponse alloc] initWithFilePath:filePath forConnection:self] autorelease];
+//    }
 	
 	return nil;
 }
