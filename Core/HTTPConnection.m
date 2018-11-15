@@ -3,7 +3,7 @@
 #import "HTTPConnection.h"
 #import "HTTPMessage.h"
 #import "HTTPResponse.h"
-#import "HTTPAuthenticationRequest.h"
+//#import "HTTPAuthenticationRequest.h"
 #import "DDNumber.h"
 #import "DDRange.h"
 #import "DDData.h"
@@ -400,161 +400,162 @@ static NSMutableArray *recentNonces;
 **/
 - (BOOL)isAuthenticated
 {
-	HTTPLogTrace();
-	
-	// Extract the authentication information from the Authorization header
-	HTTPAuthenticationRequest *auth = [[HTTPAuthenticationRequest alloc] initWithRequest:request];
-	
-	if ([self useDigestAccessAuthentication])
-	{
-		// Digest Access Authentication (RFC 2617)
-		
-		if(![auth isDigest])
-		{
-			// User didn't send proper digest access authentication credentials
-			return NO;
-		}
-		
-		if ([auth username] == nil)
-		{
-			// The client didn't provide a username
-			// Most likely they didn't provide any authentication at all
-			return NO;
-		}
-		
-		NSString *password = [self passwordForUser:[auth username]];
-		if (password == nil)
-		{
-			// No access allowed (username doesn't exist in system)
-			return NO;
-		}
-		
-		NSString *url = [[request url] relativeString];
-		
-		if (![url isEqualToString:[auth uri]])
-		{
-			// Requested URL and Authorization URI do not match
-			// This could be a replay attack
-			// IE - attacker provides same authentication information, but requests a different resource
-			return NO;
-		}
-		
-		// The nonce the client provided will most commonly be stored in our local (cached) nonce variable
-		if (![nonce isEqualToString:[auth nonce]])
-		{
-			// The given nonce may be from another connection
-			// We need to search our list of recent nonce strings that have been recently distributed
-			if ([[self class] hasRecentNonce:[auth nonce]])
-			{
-				// Store nonce in local (cached) nonce variable to prevent array searches in the future
-				nonce = [[auth nonce] copy];
-				
-				// The client has switched to using a different nonce value
-				// This may happen if the client tries to get a file in a directory with different credentials.
-				// The previous credentials wouldn't work, and the client would receive a 401 error
-				// along with a new nonce value. The client then uses this new nonce value and requests the file again.
-				// Whatever the case may be, we need to reset lastNC, since that variable is on a per nonce basis.
-				lastNC = 0;
-			}
-			else
-			{
-				// We have no knowledge of ever distributing such a nonce.
-				// This could be a replay attack from a previous connection in the past.
-				return NO;
-			}
-		}
-		
-		long authNC = strtol([[auth nc] UTF8String], NULL, 16);
-		
-		if (authNC <= lastNC)
-		{
-			// The nc value (nonce count) hasn't been incremented since the last request.
-			// This could be a replay attack.
-			return NO;
-		}
-		lastNC = authNC;
-		
-		NSString *HA1str = [NSString stringWithFormat:@"%@:%@:%@", [auth username], [auth realm], password];
-		NSString *HA2str = [NSString stringWithFormat:@"%@:%@", [request method], [auth uri]];
-		
-		NSString *HA1 = [[[HA1str dataUsingEncoding:NSUTF8StringEncoding] md5Digest] hexStringValue];
-		
-		NSString *HA2 = [[[HA2str dataUsingEncoding:NSUTF8StringEncoding] md5Digest] hexStringValue];
-		
-		NSString *responseStr = [NSString stringWithFormat:@"%@:%@:%@:%@:%@:%@",
-								 HA1, [auth nonce], [auth nc], [auth cnonce], [auth qop], HA2];
-		
-		NSString *response = [[[responseStr dataUsingEncoding:NSUTF8StringEncoding] md5Digest] hexStringValue];
-		
-		return [response isEqualToString:[auth response]];
-	}
-	else
-	{
-		// Basic Authentication
-		
-		if (![auth isBasic])
-		{
-			// User didn't send proper base authentication credentials
-			return NO;
-		}
-		
-		// Decode the base 64 encoded credentials
-		NSString *base64Credentials = [auth base64Credentials];
-		
-		NSData *temp = [[base64Credentials dataUsingEncoding:NSUTF8StringEncoding] base64Decoded];
-		
-		NSString *credentials = [[NSString alloc] initWithData:temp encoding:NSUTF8StringEncoding];
-		
-		// The credentials should be of the form "username:password"
-		// The username is not allowed to contain a colon
-		
-		NSRange colonRange = [credentials rangeOfString:@":"];
-		
-		if (colonRange.length == 0)
-		{
-			// Malformed credentials
-			return NO;
-		}
-		
-		NSString *credUsername = [credentials substringToIndex:colonRange.location];
-		NSString *credPassword = [credentials substringFromIndex:(colonRange.location + colonRange.length)];
-		
-		NSString *password = [self passwordForUser:credUsername];
-		if (password == nil)
-		{
-			// No access allowed (username doesn't exist in system)
-			return NO;
-		}
-		
-		return [password isEqualToString:credPassword];
-	}
+//    HTTPLogTrace();
+//
+//    // Extract the authentication information from the Authorization header
+//    HTTPAuthenticationRequest *auth = [[HTTPAuthenticationRequest alloc] initWithRequest:request];
+//
+//    if ([self useDigestAccessAuthentication])
+//    {
+//        // Digest Access Authentication (RFC 2617)
+//
+//        if(![auth isDigest])
+//        {
+//            // User didn't send proper digest access authentication credentials
+//            return NO;
+//        }
+//
+//        if ([auth username] == nil)
+//        {
+//            // The client didn't provide a username
+//            // Most likely they didn't provide any authentication at all
+//            return NO;
+//        }
+//
+//        NSString *password = [self passwordForUser:[auth username]];
+//        if (password == nil)
+//        {
+//            // No access allowed (username doesn't exist in system)
+//            return NO;
+//        }
+//
+//        NSString *url = [[request url] relativeString];
+//
+//        if (![url isEqualToString:[auth uri]])
+//        {
+//            // Requested URL and Authorization URI do not match
+//            // This could be a replay attack
+//            // IE - attacker provides same authentication information, but requests a different resource
+//            return NO;
+//        }
+//
+//        // The nonce the client provided will most commonly be stored in our local (cached) nonce variable
+//        if (![nonce isEqualToString:[auth nonce]])
+//        {
+//            // The given nonce may be from another connection
+//            // We need to search our list of recent nonce strings that have been recently distributed
+//            if ([[self class] hasRecentNonce:[auth nonce]])
+//            {
+//                // Store nonce in local (cached) nonce variable to prevent array searches in the future
+//                nonce = [[auth nonce] copy];
+//
+//                // The client has switched to using a different nonce value
+//                // This may happen if the client tries to get a file in a directory with different credentials.
+//                // The previous credentials wouldn't work, and the client would receive a 401 error
+//                // along with a new nonce value. The client then uses this new nonce value and requests the file again.
+//                // Whatever the case may be, we need to reset lastNC, since that variable is on a per nonce basis.
+//                lastNC = 0;
+//            }
+//            else
+//            {
+//                // We have no knowledge of ever distributing such a nonce.
+//                // This could be a replay attack from a previous connection in the past.
+//                return NO;
+//            }
+//        }
+//
+//        long authNC = strtol([[auth nc] UTF8String], NULL, 16);
+//
+//        if (authNC <= lastNC)
+//        {
+//            // The nc value (nonce count) hasn't been incremented since the last request.
+//            // This could be a replay attack.
+//            return NO;
+//        }
+//        lastNC = authNC;
+//
+//        NSString *HA1str = [NSString stringWithFormat:@"%@:%@:%@", [auth username], [auth realm], password];
+//        NSString *HA2str = [NSString stringWithFormat:@"%@:%@", [request method], [auth uri]];
+//
+//        NSString *HA1 = [[[HA1str dataUsingEncoding:NSUTF8StringEncoding] md5Digest] hexStringValue];
+//
+//        NSString *HA2 = [[[HA2str dataUsingEncoding:NSUTF8StringEncoding] md5Digest] hexStringValue];
+//
+//        NSString *responseStr = [NSString stringWithFormat:@"%@:%@:%@:%@:%@:%@",
+//                                 HA1, [auth nonce], [auth nc], [auth cnonce], [auth qop], HA2];
+//
+//        NSString *response = [[[responseStr dataUsingEncoding:NSUTF8StringEncoding] md5Digest] hexStringValue];
+//
+//        return [response isEqualToString:[auth response]];
+//    }
+//    else
+//    {
+//        // Basic Authentication
+//
+//        if (![auth isBasic])
+//        {
+//            // User didn't send proper base authentication credentials
+//            return NO;
+//        }
+//
+//        // Decode the base 64 encoded credentials
+//        NSString *base64Credentials = [auth base64Credentials];
+//
+//        NSData *temp = [[base64Credentials dataUsingEncoding:NSUTF8StringEncoding] base64Decoded];
+//
+//        NSString *credentials = [[NSString alloc] initWithData:temp encoding:NSUTF8StringEncoding];
+//
+//        // The credentials should be of the form "username:password"
+//        // The username is not allowed to contain a colon
+//
+//        NSRange colonRange = [credentials rangeOfString:@":"];
+//
+//        if (colonRange.length == 0)
+//        {
+//            // Malformed credentials
+//            return NO;
+//        }
+//
+//        NSString *credUsername = [credentials substringToIndex:colonRange.location];
+//        NSString *credPassword = [credentials substringFromIndex:(colonRange.location + colonRange.length)];
+//
+//        NSString *password = [self passwordForUser:credUsername];
+//        if (password == nil)
+//        {
+//            // No access allowed (username doesn't exist in system)
+//            return NO;
+//        }
+//
+//        return [password isEqualToString:credPassword];
+//    }
+    return YES;
 }
 
 /**
  * Adds a digest access authentication challenge to the given response.
 **/
-- (void)addDigestAuthChallenge:(HTTPMessage *)response
-{
-	HTTPLogTrace();
-	
-	NSString *authFormat = @"Digest realm=\"%@\", qop=\"auth\", nonce=\"%@\"";
-	NSString *authInfo = [NSString stringWithFormat:authFormat, [self realm], [[self class] generateNonce]];
-	
-	[response setHeaderField:@"WWW-Authenticate" value:authInfo];
-}
-
-/**
- * Adds a basic authentication challenge to the given response.
-**/
-- (void)addBasicAuthChallenge:(HTTPMessage *)response
-{
-	HTTPLogTrace();
-	
-	NSString *authFormat = @"Basic realm=\"%@\"";
-	NSString *authInfo = [NSString stringWithFormat:authFormat, [self realm]];
-	
-	[response setHeaderField:@"WWW-Authenticate" value:authInfo];
-}
+//- (void)addDigestAuthChallenge:(HTTPMessage *)response
+//{
+//    HTTPLogTrace();
+//
+//    NSString *authFormat = @"Digest realm=\"%@\", qop=\"auth\", nonce=\"%@\"";
+//    NSString *authInfo = [NSString stringWithFormat:authFormat, [self realm], [[self class] generateNonce]];
+//
+//    [response setHeaderField:@"WWW-Authenticate" value:authInfo];
+//}
+//
+///**
+// * Adds a basic authentication challenge to the given response.
+//**/
+//- (void)addBasicAuthChallenge:(HTTPMessage *)response
+//{
+//    HTTPLogTrace();
+//
+//    NSString *authFormat = @"Basic realm=\"%@\"";
+//    NSString *authInfo = [NSString stringWithFormat:authFormat, [self realm]];
+//
+//    [response setHeaderField:@"WWW-Authenticate" value:authInfo];
+//}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #pragma mark Core
@@ -1780,14 +1781,14 @@ static NSMutableArray *recentNonces;
 	HTTPMessage *response = [[HTTPMessage alloc] initResponseWithStatusCode:401 description:nil version:HTTPVersion1_1];
 	[response setHeaderField:@"Content-Length" value:@"0"];
 	
-	if ([self useDigestAccessAuthentication])
-	{
-		[self addDigestAuthChallenge:response];
-	}
-	else
-	{
-		[self addBasicAuthChallenge:response];
-	}
+//    if ([self useDigestAccessAuthentication])
+//    {
+//        [self addDigestAuthChallenge:response];
+//    }
+//    else
+//    {
+//        [self addBasicAuthChallenge:response];
+//    }
 	
 	NSData *responseData = [self preprocessErrorResponse:response];
 	[asyncSocket writeData:responseData withTimeout:TIMEOUT_WRITE_ERROR tag:HTTP_RESPONSE];

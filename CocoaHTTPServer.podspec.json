@@ -11,7 +11,7 @@
     "git": "https://github.com/ethan0w/CocoaHTTPServer.git",
     "tag": "2.3"
   },
-  "source_files": "{Core,Extensions,Vendor}/**/*.{h,m}",
+  "source_files": "{Core,Vendor}/**/*.{h,m}",
   "requires_arc": true,
   "platforms": {
     "ios": "5.0",
