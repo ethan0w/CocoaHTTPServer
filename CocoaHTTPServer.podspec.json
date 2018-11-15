@@ -11,7 +11,7 @@
     "git": "https://github.com/ethan0w/CocoaHTTPServer.git",
     "tag": "2.3"
   },
-  "source_files": "{Core,Extensions}/**/*.{h,m}",
+  "source_files": "{Core,Extensions,Vendor}/**/*.{h,m}",
   "requires_arc": true,
   "platforms": {
     "ios": "5.0",
@@ -32,10 +32,5 @@
   "libraries": "xml2",
   "xcconfig": {
     "HEADER_SEARCH_PATHS": "\"$(SDKROOT)/usr/include/libxml2\""
-  },
-  "dependencies": {
-    "CocoaAsyncSocket": [
-      "7.4.3"
-    ]
   }
 }
